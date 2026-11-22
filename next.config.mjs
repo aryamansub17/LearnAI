@@ -3,9 +3,15 @@
 // have no nonce to match, breaking the page. Using 'unsafe-inline' for scripts
 // is the honest tradeoff here; revisit with a nonce + 'strict-dynamic' only if
 // these routes move to fully dynamic rendering.
+// Next's dev bundler emits `eval()`-based source maps, which a CSP without
+// 'unsafe-eval' blocks — that kills hydration in `next dev`, leaving every
+// framer-motion element stuck at its initial opacity. Production builds don't
+// use eval, so the shipped policy is unchanged.
+const DEV = process.env.NODE_ENV !== "production";
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${DEV ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data:",
