@@ -9,7 +9,7 @@ import { transition, DURATION } from "@/lib/motion";
 const FAQ_ITEMS = [
   {
     q: "What is PolyTeach?",
-    a: "PolyTeach is an AI coach for competition math, science olympiads, AP courses, debate, and more. Instead of handing you answers, it asks the questions that get you there yourself — the same way a great human tutor would.",
+    a: "PolyTeach is an AI coach for competition math — AMC, AIME, USAMO and MATHCOUNTS. Instead of handing you answers, it asks the questions that get you there yourself, the way a good human coach would. The same engine also supports the CS and science olympiads.",
   },
   {
     q: "How is this different from just asking ChatGPT?",
@@ -17,7 +17,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What subjects are covered?",
-    a: "60+ subjects: AMC/AIME/USAMO, MATHCOUNTS, USACO, Science Olympiad, all 38 AP courses, DECA, FBLA, Policy and LD debate, Model UN, and more.",
+    a: "Competition math is the focus and where the coaching is deepest: AMC 8/10/12, AIME, USAMO and MATHCOUNTS. The same Socratic engine also supports USACO and ACSL for computer science, and F=ma/USAPhO, USNCO, USABO and Science Olympiad for the sciences.",
   },
   {
     q: "How does it know what difficulty to give me?",

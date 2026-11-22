@@ -17,29 +17,43 @@ import { TEAM_MIN_SEATS, TEAM_SEAT_PRICE, PRO_PRICE } from "@/lib/billing";
 
 // ── Data ────────────────────────────────────────────────────────────────────
 
-const TESTIMONIALS = [
+// Figures below are quoted from the primary sources and describe the general
+// education-research literature on retrieval practice, tutoring and active
+// learning. They are NOT measurements of PolyTeach outcomes, and the copy must
+// not imply otherwise. Each was checked against the published paper:
+//   - Roediger & Karpicke 2006 is Psychological Science, not Science, and the
+//     author order is Roediger first. The effect reverses on immediate tests.
+//   - Bloom's 2σ is one-to-one tutoring *with mastery learning*; group mastery
+//     learning alone produced ~1σ, and the full 2σ has rarely replicated.
+//   - Freeman et al. report failure rates 55% HIGHER under lecturing, which is
+//     not the same as a 55% reduction in failures from active learning.
+const STATS = [
   {
-    quote: "I qualified for AIME this year after two years of trying. The difference was having to derive every answer myself instead of watching solutions.",
-    name: "Marcus T.",
-    role: "AMC 12 → AIME qualifier",
+    stat: "61%",
+    desc: "of a prose passage still recalled a week later by students who practised retrieval, against 40% for students who only re-read it. On an immediate test the order reverses — re-reading leads at five minutes.",
+    source: "Roediger & Karpicke, Psychological Science 17(3), 249–255 (2006), Exp. 2",
   },
   {
-    quote: "I went from barely knowing what USACO was to a Silver finish in one prep season. The Socratic sessions on graph algorithms were brutal — but they stuck.",
-    name: "Priya K.",
-    role: "USACO Silver",
+    stat: "2σ",
+    desc: "the gap Bloom reported between one-to-one tutoring with mastery learning and conventional class teaching — the average tutored student scored above roughly 98% of conventionally taught peers. Group mastery learning alone produced about 1σ, and later work has rarely reproduced the full effect.",
+    source: "Bloom, Educational Researcher 13(6), 4–16 (1984)",
   },
   {
-    quote: "My F=ma score jumped 18 points. Having an AI that refuses to give you the answer is annoying at first, then it becomes the only thing that works.",
-    name: "Daniel R.",
-    role: "USAPhO semifinalist",
+    stat: "55%",
+    desc: "higher failure rate under traditional lecturing than under active learning, across 225 studies — 33.8% against 21.8%. Examination scores rose about 6% (0.47 SD).",
+    source: "Freeman et al., PNAS 111(23), 8410–8415 (2014)",
   },
 ];
 
-const STATS = [
-  { stat: "50%", desc: "more material retained when you actively recall vs. re-reading.", source: "Karpicke & Roediger, Science (2006)" },
-  { stat: "98th pct", desc: "where the average tutored student lands relative to lecture-taught peers.", source: "Bloom, Educational Researcher (1984)" },
-  { stat: "55%", desc: "fewer STEM failures when taught with question-driven active methods.", source: "Freeman et al., PNAS (2014)" },
-];
+// The AMC 12 number-theory question is shown in two places — the Practice card
+// and the Mock Test demo. It is defined once here so the two can never disagree
+// about the options or the answer, which is exactly what went wrong before:
+// Practice offered A)13 B)14 C)15 D)16, none of which is the correct answer (28).
+const MOD7_PROBLEM = {
+  q: "How many positive integers n ≤ 100 satisfy n² − n + 1 ≡ 0 (mod 7)?",
+  choices: ["A) 10", "B) 14", "C) 15", "D) 28", "E) 29"],
+  correct: "D",
+} as const;
 
 const OLYMPIAD_MARQUEE = [
   "AMC 8", "AMC 10", "AMC 12", "AIME", "USAMO", "MATHCOUNTS",
@@ -115,10 +129,10 @@ function ProblemPreview() {
     <div className="p-4 pt-2">
       <p className="text-xs text-accent font-medium mb-3">AMC 12 · Problem 14</p>
       <p className="text-xs text-text leading-relaxed mb-4">
-        How many positive integers n ≤ 100 satisfy n² − n + 1 ≡ 0 (mod 7)?
+        {MOD7_PROBLEM.q}
       </p>
       <div className="grid grid-cols-2 gap-1.5">
-        {["A) 13", "B) 14", "C) 15", "D) 16"].map((c) => (
+        {MOD7_PROBLEM.choices.map((c) => (
           <div key={c} className="px-2 py-1.5 rounded-lg border border-border-2 text-2xs text-text-2 text-center">{c}</div>
         ))}
       </div>
@@ -153,18 +167,21 @@ function CalendarPreview() {
 
 // ── Interactive Mock Test demo ───────────────────────────────────────────────
 
+// Every question here is checked by scripts/verify-problems.mjs, which recomputes
+// the answer from first principles and fails the build on a mismatch. Do not edit
+// a question without re-running `npm run verify:problems`.
 const MOCK_QUESTIONS = [
   {
-    q: "How many positive integers n ≤ 100 satisfy n² − n + 1 ≡ 0 (mod 7)?",
-    choices: ["A) 10", "B) 14", "C) 15", "D) 28", "E) 29"],
-    correct: "B",
-    explanation: "n² − n + 1 ≡ 0 (mod 7) means n² ≡ n − 1 (mod 7). Testing residues 0–6 shows n ≡ 3 or 5 (mod 7) work. In 1–100 there are 14 such values each, giving 14.",
+    ...MOD7_PROBLEM,
+    explanation:
+      "n² − n + 1 ≡ 0 (mod 7). Testing residues 0–6: only n ≡ 3 and n ≡ 5 (mod 7) give 0. Each residue class contributes 14 values in 1–100 (3,10,…,94 and 5,12,…,96), so the total is 14 + 14 = 28.",
   },
   {
     q: "What is the area of the region in the coordinate plane defined by |x| + |y| + |x + y| ≤ 2?",
-    choices: ["A) 2", "B) 2√2", "C) 4", "D) 3√2", "E) 6"],
-    correct: "C",
-    explanation: "Breaking into cases by sign gives a hexagon. Its area works out to 4.",
+    choices: ["A) 2", "B) 3", "C) 4", "D) 3√2", "E) 6"],
+    correct: "B",
+    explanation:
+      "For any reals, |x| + |y| + |x + y| = 2·max(|x|, |y|, |x + y|). So the condition is max(|x|, |y|, |x + y|) ≤ 1 — the square [−1,1]² cut by |x + y| ≤ 1. That removes two corner triangles of area ½ each, leaving 4 − ½ − ½ = 3.",
   },
   {
     q: "If log₂(x) + log₄(x) = 6, what is x?",
@@ -176,7 +193,8 @@ const MOCK_QUESTIONS = [
     q: "How many ordered pairs (a, b) of positive integers satisfy a² + b² = 2024?",
     choices: ["A) 0", "B) 2", "C) 4", "D) 6", "E) 8"],
     correct: "A",
-    explanation: "2024 ≡ 0 (mod 4). For a² + b² ≡ 0 (mod 4), both a and b must be even. But then a = 2a′, b = 2b′ → a′² + b′² = 506 = 2 × 11 × 23. 506 ≡ 2 (mod 4), which is impossible since squares are 0 or 1 mod 4. So 0 solutions.",
+    explanation:
+      "2024 = 2³ · 11 · 23. A positive integer is a sum of two squares exactly when every prime ≡ 3 (mod 4) appears to an even power. Here 11 ≡ 3 (mod 4) appears to the first power, so no representation exists — 0 ordered pairs.",
   },
 ];
 
@@ -220,7 +238,7 @@ function InteractiveMockTest() {
       {/* Test header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border-2 bg-surface">
         <div className="flex items-center gap-4">
-          <span className="text-xs font-medium text-accent">AMC 10</span>
+          <span className="text-xs font-medium text-muted">AMC 10</span>
           <span className="text-xs text-muted">·</span>
           <span className="text-xs text-text-2">Question {qIdx + 8} of 30</span>
           <div className="flex gap-1 ml-2">
@@ -318,7 +336,7 @@ const DIAG_SEQUENCE = [
   { difficulty: "Intermediate", topic: "Algebra", q: "If 3x + 7 = 22, what is 2x?", choices: ["A) 5", "B) 8", "C) 10", "D) 14"], correct: "C", level: 45 },
   { difficulty: "Advanced", topic: "Number Theory", q: "What is the remainder when 7¹⁰⁰ is divided by 8?", choices: ["A) 1", "B) 3", "C) 5", "D) 7"], correct: "A", level: 62 },
   { difficulty: "Olympiad", topic: "Combinatorics", q: "In how many ways can 5 people be seated at a round table if two specific people must not be adjacent?", choices: ["A) 12", "B) 18", "C) 24", "D) 36"], correct: "A", level: 78 },
-  { difficulty: "Olympiad", topic: "Geometry", q: "A circle of radius 2 is tangent to both axes and to a line y = x + k. What is k?", choices: ["A) 2√2 − 2", "B) 2 − 2√2", "C) 2√2", "D) 2 + 2√2"], correct: "D", level: 85 },
+  { difficulty: "Olympiad", topic: "Geometry", q: "A circle of radius 2 is tangent to both axes and to a line y = x + k. What is k?", choices: ["A) 2√2 − 2", "B) 2 − 2√2", "C) 2√2", "D) 2 + 2√2"], correct: "C", level: 85 },
 ];
 
 const SKILL_INITIAL = { Algebra: 0, "Number Theory": 0, Geometry: 0, Combinatorics: 0 };
@@ -366,7 +384,7 @@ function InteractiveDiagnostic() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border-2 bg-surface">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-medium text-accent">AMC 10 Diagnostic</span>
+          <span className="text-xs font-medium text-muted">AMC 10 Diagnostic</span>
           <span className="text-xs text-muted">·</span>
           {!done && <span className="text-xs text-text-2">Question {qIdx + 1} of {DIAG_SEQUENCE.length}</span>}
           {done && <span className="text-xs text-green-600">Assessment complete</span>}
@@ -559,6 +577,34 @@ const COMPARISON_ROWS: ComparisonRow[] = [
 // bottom CTA uses py-36 (largest — deliberate emphasis on the close); Faq keeps its own
 // denser py-20.
 
+// ── Section header ───────────────────────────────────────────────────────────
+// One quiet, left-aligned treatment used by every section: a hairline rule sets
+// the section off, the headline carries it, and an optional standfirst sits on a
+// narrower measure. Sections differ by the layout of their content, not by
+// decoration bolted onto the header.
+function SectionHead({
+  title,
+  children,
+  className = "",
+}: {
+  title: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Reveal className={className}>
+      <div className="border-t border-border-2 pt-7">
+        <h2 className="text-[clamp(25px,3.3vw,42px)] font-normal tracking-[-0.02em] leading-[1.14] max-w-2xl text-text">
+          {title}
+        </h2>
+        {children && (
+          <p className="text-sm text-text-2 leading-relaxed mt-4 max-w-lg">{children}</p>
+        )}
+      </div>
+    </Reveal>
+  );
+}
+
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
@@ -635,37 +681,24 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-mesh-hero" />
         </div>
 
-        {/* Social proof */}
-        {accountCount !== null && (
-          <motion.p
-            className="mb-7 text-sm text-text-2"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={transition(DURATION.slow)}
-          >
-            Joined by {accountCount.toLocaleString()}+ competitors
-          </motion.p>
-        )}
-
-        {/* Headline */}
+        {/* Headline — one continuous serif line, no colour break and no
+            superlative. The claim itself is the differentiator. */}
         <motion.h1
-          className="font-sans text-[clamp(42px,6.6vw,84px)] font-medium tracking-[-0.045em] leading-[1.06] max-w-4xl text-text"
+          className="text-[clamp(40px,6.2vw,78px)] font-normal tracking-[-0.03em] leading-[1.04] max-w-[16ch] text-text"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={transition(DURATION.slower, 0.08)}
         >
-          The #1 AI coach
-          <br />
-          <span className="font-serif font-normal tracking-[-0.015em] text-accent">for every olympiad</span>
+          Coaching that refuses to give you the answer.
         </motion.h1>
 
         <motion.p
-          className="mt-6 text-base text-text-2 leading-[1.7] max-w-md font-sans"
+          className="mt-7 text-base text-text-2 leading-[1.7] max-w-md font-sans"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={transition(DURATION.slow, 0.18)}
         >
-          Socratic AI coaching for every major math, CS, and science olympiad — it never hands you the answer.
+          Socratic AI coaching for competition math — AMC, AIME, USAMO, MATHCOUNTS — extended to the CS and science olympiads. It asks the question that unblocks you, and stops there.
         </motion.p>
 
         {/* CTAs */}
@@ -676,8 +709,21 @@ export default function LandingPage() {
           transition={transition(DURATION.slow, 0.28)}
         >
           <Button href="/coach">Start training free</Button>
-          <Button href="#demo" variant="secondary">See it in action ↓</Button>
+          <Button href="#demo" variant="secondary">See a session</Button>
         </motion.div>
+
+        {/* Social proof — real figure, kept quiet and placed after the ask
+            rather than used as a badge above the headline. */}
+        {accountCount !== null && (
+          <motion.p
+            className="mt-6 text-xs text-muted"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={transition(DURATION.slow, 0.36)}
+          >
+            {accountCount.toLocaleString()}+ competitors training
+          </motion.p>
+        )}
 
         {/* Hero app screenshot — the page's one glowing element, with a subtle scroll parallax */}
         <motion.div
@@ -709,16 +755,14 @@ export default function LandingPage() {
 
       {/* ── Problem ── */}
       <section className="relative z-10 px-8 py-28 border-b border-border">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-14 items-start">
-          <Reveal className="shrink-0">
-            <span className="block text-[96px] leading-none font-semibold tracking-[-0.04em] text-black/[0.05] select-none">01</span>
-          </Reveal>
-          <Reveal y={24} delay={0.08}>
-            <h2 className="text-[clamp(26px,3.6vw,44px)] font-semibold tracking-[-0.035em] leading-[1.15] mb-5 max-w-xl">
-              Most studying plateaus because it&apos;s built around answers, not <span className="font-serif font-normal">questions</span>.
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-x-14 gap-y-5 items-start">
+          <Reveal className="md:col-span-7">
+            <h2 className="text-[clamp(27px,3.7vw,46px)] font-normal tracking-[-0.022em] leading-[1.12]">
+              Most studying plateaus because it&apos;s built around answers, not questions.
             </h2>
-            <p className="text-sm text-text-2 leading-relaxed max-w-lg">
+          </Reveal>
+          <Reveal y={24} delay={0.1} className="md:col-span-5 md:pt-2">
+            <p className="text-sm text-text-2 leading-relaxed">
               Watching a worked solution feels like progress. It isn&apos;t. The skill that actually shows up on test day — noticing which idea to reach for, on a problem you&apos;ve never seen — only develops when you&apos;re forced to find it yourself. Most prep resources skip straight to the answer key.
             </p>
           </Reveal>
@@ -727,17 +771,15 @@ export default function LandingPage() {
 
       {/* ── Why AI alone isn't enough ── */}
       <section className="relative z-10 px-8 py-28 bg-surface-2 border-b border-border">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-14 items-start mb-14">
-            <Reveal className="shrink-0">
-              <span className="block text-[96px] leading-none font-semibold tracking-[-0.04em] text-black/[0.05] select-none">02</span>
-            </Reveal>
-            <Reveal y={24} delay={0.08}>
-              <h2 className="text-[clamp(26px,3.6vw,44px)] font-semibold tracking-[-0.035em] leading-[1.15] mb-5 max-w-xl">
-                A general chatbot won&apos;t fix that — it&apos;s built to be helpful, which means it just <span className="font-serif font-normal">tells you</span>.
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-x-14 gap-y-5 items-start mb-16">
+            <Reveal className="md:col-span-7">
+              <h2 className="text-[clamp(27px,3.7vw,46px)] font-normal tracking-[-0.022em] leading-[1.12]">
+                A general chatbot won&apos;t fix that — it&apos;s built to be helpful, which means it just tells you.
               </h2>
-              <p className="text-sm text-text-2 leading-relaxed max-w-lg">
+            </Reveal>
+            <Reveal y={24} delay={0.1} className="md:col-span-5 md:pt-2">
+              <p className="text-sm text-text-2 leading-relaxed">
                 Ask a generic AI for help and it optimizes for the fastest correct answer. PolyTeach is built around one constraint instead: never tell, always ask.
               </p>
             </Reveal>
@@ -748,24 +790,17 @@ export default function LandingPage() {
 
       {/* ── Feature bento grid ── */}
       <section className="relative z-10 px-8 pt-20 pb-32 bg-surface-2 border-b border-border">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 md:gap-14 items-start mb-14">
-            <Reveal className="shrink-0">
-              <span className="block text-[96px] leading-none font-semibold tracking-[-0.04em] text-black/[0.05] select-none">03</span>
-            </Reveal>
-            <Reveal y={24} delay={0.08}>
-              <p className="text-xs font-semibold uppercase tracking-[0.09em] text-accent mb-3">How PolyTeach differs</p>
-              <h2 className="text-[clamp(24px,3.4vw,44px)] font-semibold tracking-[-0.035em] leading-[1.15] max-w-xl">Built for students serious about <span className="font-serif font-normal">competitive academics</span></h2>
-            </Reveal>
-          </div>
+          <SectionHead className="mb-14" title="Built for students serious about competitive academics">
+            Five modes, one model of what you actually know — coaching, practice, timed mocks, diagnostics, and a plan that reshapes itself around your gaps.
+          </SectionHead>
 
           <div className="grid grid-cols-12 gap-6">
             {/* Coaching — large */}
             <Reveal className="col-span-12 md:col-span-7" y={32} delay={0.05}>
               <Card hoverable radius="2xl" className="h-full">
                 <div className="p-7 pb-3">
-                  <span className="text-xs font-medium text-accent">Coach mode</span>
+                  <span className="text-xs font-medium text-muted">Coach mode</span>
                   <h3 className="text-lg font-semibold tracking-tight mt-2 mb-1">Socratic coaching</h3>
                   <p className="text-sm text-text-2 leading-relaxed max-w-xs">Never hands you the answer. Asks the exact question that unblocks your thinking — at any hour.</p>
                 </div>
@@ -783,7 +818,7 @@ export default function LandingPage() {
             <Reveal className="col-span-12 md:col-span-5" y={32} delay={0.12}>
               <Card hoverable radius="2xl" className="h-full">
                 <div className="p-7 pb-3">
-                  <span className="text-xs font-medium text-accent">Practice mode</span>
+                  <span className="text-xs font-medium text-muted">Practice mode</span>
                   <h3 className="text-lg font-semibold tracking-tight mt-2 mb-1">Competition-caliber problems</h3>
                   <p className="text-sm text-text-2 leading-relaxed">Problems matched to real contest difficulty — not generic textbook exercises.</p>
                 </div>
@@ -797,7 +832,7 @@ export default function LandingPage() {
             <Reveal className="col-span-12" y={32} delay={0.16}>
               <Card radius="2xl">
                 <div className="px-7 pt-7 pb-5 border-b border-border">
-                  <span className="text-xs font-medium text-accent">Mock test</span>
+                  <span className="text-xs font-medium text-muted">Mock test</span>
                   <h3 className="text-lg font-semibold tracking-tight mt-2 mb-1">Full AMC practice, built in.</h3>
                   <p className="text-sm text-text-2 leading-relaxed max-w-xl">Timed, scored, and instantly debriefed — just like the real exam. Try a live question below.</p>
                 </div>
@@ -811,7 +846,7 @@ export default function LandingPage() {
             <Reveal className="col-span-12" y={32} delay={0.2}>
               <Card radius="2xl">
                 <div className="px-7 pt-7 pb-5 border-b border-border">
-                  <span className="text-xs font-medium text-accent">Diagnostic assessment</span>
+                  <span className="text-xs font-medium text-muted">Diagnostic assessment</span>
                   <h3 className="text-lg font-semibold tracking-tight mt-2 mb-1">Knows exactly where you stand.</h3>
                   <p className="text-sm text-text-2 leading-relaxed max-w-xl">Answer a few questions and watch the system pinpoint your strengths and gaps in real time.</p>
                 </div>
@@ -825,7 +860,7 @@ export default function LandingPage() {
             <Reveal className="col-span-12 md:col-span-5" y={32} delay={0.24}>
               <Card hoverable radius="2xl" className="h-full">
                 <div className="p-7 pb-3">
-                  <span className="text-xs font-medium text-accent">Diagnose mode</span>
+                  <span className="text-xs font-medium text-muted">Diagnose mode</span>
                   <h3 className="text-lg font-semibold tracking-tight mt-2 mb-1">Adaptive diagnostic</h3>
                   <p className="text-sm text-text-2 leading-relaxed">10 questions that map your knowledge ceiling concept-by-concept and generate a study plan.</p>
                 </div>
@@ -839,7 +874,7 @@ export default function LandingPage() {
             <Reveal className="col-span-12 md:col-span-7" y={32} delay={0.3}>
               <Card hoverable radius="2xl" className="h-full">
                 <div className="p-7 pb-3">
-                  <span className="text-xs font-medium text-accent">Prep campaign</span>
+                  <span className="text-xs font-medium text-muted">Prep campaign</span>
                   <h3 className="text-lg font-semibold tracking-tight mt-2 mb-1">Day-by-day study plan</h3>
                   <p className="text-sm text-text-2 leading-relaxed max-w-xs">Set a competition date. The agent builds a day-by-day plan and adjusts after each session based on what you actually understood.</p>
                 </div>
@@ -854,30 +889,22 @@ export default function LandingPage() {
 
       {/* ── Live Demo ── */}
       <section id="demo" className="relative z-10 px-8 py-32 scroll-mt-24">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
         <div className="max-w-5xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-20">
-              <p className="text-xs font-semibold uppercase tracking-[0.09em] text-accent mb-3">Live demo</p>
-              <h2 className="text-[clamp(26px,3.8vw,48px)] font-semibold tracking-[-0.035em]">What a <span className="font-serif font-normal">session</span> looks like</h2>
-              <p className="text-sm text-text-2 mt-4 max-w-md mx-auto leading-relaxed">The coach never gives you the answer. It asks the question that makes you find it.</p>
-            </div>
-          </Reveal>
+          <SectionHead className="mb-16" title="What a session looks like">
+            The coach never gives you the answer. It asks the question that makes you find it.
+          </SectionHead>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-12 order-2 lg:order-1">
+            <div className="order-2 lg:order-1">
               {[
-                { step: "01", title: "Pick your competition", desc: "AMC 12, AIME, USAMO, USACO, USAPhO, USNCO, USABO — select the one you're training for." },
-                { step: "02", title: "Run a session", desc: "Coach mode for open questions, Practice for problems, Diagnose to map your gaps and get a study plan." },
-                { step: "03", title: "Derive, don't memorize", desc: "The coach never gives you the answer. It asks the question that makes you find it — so it actually sticks." },
+                { title: "Pick your competition", desc: "AMC 12, AIME, USAMO, USACO, USAPhO, USNCO, USABO — select the one you're training for." },
+                { title: "Run a session", desc: "Coach mode for open questions, Practice for problems, Diagnose to map your gaps and get a study plan." },
+                { title: "Derive, don't memorize", desc: "The coach never gives you the answer. It asks the question that makes you find it — so it actually sticks." },
               ].map((item, i) => (
-                <Reveal key={item.step} delay={i * 0.1}>
-                  <div className="flex gap-6">
-                    <span className="text-3xl font-semibold tracking-[-0.04em] shrink-0 w-10 text-black/[0.05] tabular-nums">{item.step}</span>
-                    <div>
-                      <h3 className="text-base font-semibold text-text mb-1.5">{item.title}</h3>
-                      <p className="text-sm text-text-2 leading-relaxed">{item.desc}</p>
-                    </div>
+                <Reveal key={item.title} delay={i * 0.1}>
+                  <div className={`py-7 ${i > 0 ? "border-t border-border-2" : "pt-0"}`}>
+                    <h3 className="text-base font-sans font-semibold text-text mb-1.5">{item.title}</h3>
+                    <p className="text-sm text-text-2 leading-relaxed max-w-sm">{item.desc}</p>
                   </div>
                 </Reveal>
               ))}
@@ -893,55 +920,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Testimonials ── */}
-      <section className="relative z-10 px-8 py-32">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
-        <div className="max-w-6xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-20">
-              <p className="text-xs font-semibold uppercase tracking-[0.09em] text-accent mb-3">Student results</p>
-              <h2 className="text-[clamp(26px,3.8vw,48px)] font-semibold tracking-[-0.035em]">Students who <span className="font-serif font-normal">qualified</span></h2>
-              <p className="text-sm text-text-2 mt-4">What changes once you stop looking up solutions.</p>
-            </div>
-          </Reveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {TESTIMONIALS.map((t, i) => (
-              <Reveal key={t.name} y={40} delay={i * 0.12}>
-                <Card hoverable radius="2xl" className="relative flex flex-col h-full p-8">
-                  <span className="text-3xl font-semibold tracking-[-0.04em] text-black/[0.05] select-none mb-4 tabular-nums">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <p className="text-base text-text leading-relaxed flex-1 mb-8">{t.quote}</p>
-                  <div className="pt-5 border-t border-border-2">
-                    <p className="text-sm font-semibold text-text">{t.name}</p>
-                    <p className="text-xs text-text-2">{t.role}</p>
-                  </div>
-                </Card>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── Testimonials ──
+          Removed deliberately. The previous three quotes ("Marcus T.", "Priya K.",
+          "Daniel R.") were illustrative copy, not statements from real students,
+          and were attributed to named people with specific competition outcomes.
+          Publishing invented endorsements as genuine is an FTC endorsement-guide
+          problem as well as a credibility one. Restore this section only with
+          quotes from real students who have given written permission, and do not
+          claim PolyTeach caused a qualification without evidence for that link. ── */}
 
       {/* ── Stats ── */}
       <section className="relative z-10 px-8 py-32">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
         <div className="max-w-5xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-20">
-              <p className="text-xs font-semibold uppercase tracking-[0.09em] text-accent mb-3">The research</p>
-              <h2 className="text-[clamp(26px,3.8vw,48px)] font-semibold tracking-[-0.035em]">Why Socratic coaching produces <span className="font-serif font-normal">competitors</span></h2>
-            </div>
-          </Reveal>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <SectionHead className="mb-14" title="What the research on retrieval practice shows">
+            Findings from the education-research literature on retrieval practice, tutoring and active learning — not measurements of PolyTeach. They describe why the method is built this way, not what it has achieved.
+          </SectionHead>
+          {/* Figures read as evidence, not as cards on a marketing page — a plain
+              rule-divided row keeps the source line attached to its number. */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-12 gap-y-10">
             {STATS.map((s, i) => (
               <Reveal key={s.stat} y={32} delay={i * 0.12}>
-                <Card hoverable radius="2xl" className="p-8 h-full">
-                  <div className="text-5xl font-semibold tracking-[-0.045em] mb-4 tabular-nums bg-gradient-to-br from-accent to-[#3D5FA3] bg-clip-text text-transparent">{s.stat}</div>
-                  <p className="text-sm text-text-2 leading-relaxed mb-4">{s.desc}</p>
+                <div className="border-t border-border-2 pt-6 h-full flex flex-col">
+                  <div className="text-[44px] leading-none font-sans font-normal tracking-[-0.04em] mb-4 tabular-nums text-accent">{s.stat}</div>
+                  <p className="text-sm text-text-2 leading-relaxed mb-4 flex-1">{s.desc}</p>
                   <p className="text-2xs text-muted">{s.source}</p>
-                </Card>
+                </div>
               </Reveal>
             ))}
           </div>
@@ -950,19 +953,10 @@ export default function LandingPage() {
 
       {/* ── Comparison table ── */}
       <section className="relative z-10 px-8 py-32 bg-surface-2 border-y border-border">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
         <div className="max-w-6xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-xs font-semibold uppercase tracking-[0.09em] text-accent mb-3">How we compare</p>
-              <h2 className="text-[clamp(26px,3.8vw,48px)] font-semibold tracking-[-0.035em]">
-                The only platform built<br/><span className="font-serif font-normal">for every major olympiad</span>
-              </h2>
-              <p className="text-sm text-text-2 mt-5 max-w-lg mx-auto leading-relaxed">
-                AoPS pioneered math olympiad prep. USACO Guide owns competitive programming. But no single platform coaches you across math, CS, physics, chemistry, and biology — until now.
-              </p>
-            </div>
-          </Reveal>
+          <SectionHead className="mb-14" title="How PolyTeach compares">
+            AoPS pioneered math olympiad prep; USACO Guide owns competitive programming. PolyTeach&apos;s focus is competition math, coached Socratically rather than explained — with the same engine extended to the CS and science olympiads.
+          </SectionHead>
 
           <Reveal y={32} delay={0.1}>
             <Card radius="2xl">
@@ -975,9 +969,7 @@ export default function LandingPage() {
                       {COMPETITORS.map((c) => (
                         <div key={c.name} className={`text-center ${c.highlight ? "" : ""}`}>
                           {c.highlight ? (
-                            <div className="inline-flex flex-col items-center gap-1.5">
-                              <Badge variant="accent">PolyTeach</Badge>
-                            </div>
+                            <span className="text-xs text-accent font-semibold">PolyTeach</span>
                           ) : (
                             <span className="text-xs text-muted font-medium">{c.name}</span>
                           )}
@@ -1046,17 +1038,10 @@ export default function LandingPage() {
 
       {/* ── Pricing ── */}
       <section id="pricing" className="relative z-10 px-8 py-32 scroll-mt-24">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
         <div className="max-w-5xl mx-auto">
-          <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-xs font-semibold uppercase tracking-[0.09em] text-accent mb-3">Pricing</p>
-              <h2 className="text-[clamp(26px,3.8vw,48px)] font-semibold tracking-[-0.035em]">Simple pricing for <span className="font-serif font-normal">serious competitors</span></h2>
-              <p className="text-sm text-text-2 mt-4 max-w-sm mx-auto leading-relaxed">
-                AIME qualification is worth $0 to a college if you can&apos;t explain how you solved the problem.
-              </p>
-            </div>
-          </Reveal>
+          <SectionHead className="mb-14" title="Simple pricing for serious competitors">
+            AIME qualification is worth $0 to a college if you can&apos;t explain how you solved the problem.
+          </SectionHead>
 
           {checkoutError && (
             <p className="text-center text-sm text-red-600 mb-6">{checkoutError}</p>
@@ -1088,10 +1073,7 @@ export default function LandingPage() {
             {/* Pro */}
             <Reveal y={32} delay={0.12}>
               <Card hoverable radius="2xl" border="border-accent" bg="bg-surface-2" className="relative h-full p-7 flex flex-col">
-                <div className="flex items-center justify-between mb-0.5">
-                  <p className="text-sm font-medium text-accent">Pro</p>
-                  <Badge variant="neutral">Most popular</Badge>
-                </div>
+                <p className="text-sm font-medium text-accent mb-0.5">Pro</p>
                 <div className="mt-4 mb-1">
                   <span className="text-5xl font-semibold tracking-[-0.04em] tabular-nums">${PRO_PRICE}</span>
                   <span className="text-sm text-text-2 font-normal ml-1">/mo</span>
@@ -1148,11 +1130,9 @@ export default function LandingPage() {
           </div>
 
           <Reveal delay={0.2}>
-            <div className="mt-8 p-6 rounded-2xl border border-border bg-surface text-center">
-              <p className="text-sm text-text-2 leading-relaxed max-w-2xl mx-auto">
-                At ${PRO_PRICE}/month during a 4-month prep window, the cost is less than a single hour with a private math tutor — and you get unlimited sessions.
-              </p>
-            </div>
+            <p className="mt-10 pt-6 border-t border-border-2 text-xs text-muted leading-relaxed max-w-xl">
+              At ${PRO_PRICE}/month across a four-month prep window, the cost lands under a single hour with a private math tutor — with unlimited sessions.
+            </p>
           </Reveal>
         </div>
       </section>
@@ -1162,13 +1142,9 @@ export default function LandingPage() {
 
       {/* ── Bottom CTA ── */}
       <section className="relative z-10 px-8 py-36 text-center overflow-hidden">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-mesh-section" />
-        <div className="pointer-events-none absolute left-1/2 top-10 -translate-x-1/2 text-[120px] leading-none font-semibold tracking-[-0.04em] text-black/[0.04] select-none">
-          03
-        </div>
         <Reveal>
-          <h2 className="text-[clamp(28px,4vw,54px)] font-semibold tracking-[-0.03em] mb-5">
-            Train the way <span className="font-serif font-normal">competitors</span> train.
+          <h2 className="text-[clamp(28px,4vw,54px)] font-normal tracking-[-0.025em] mb-5">
+            Train the way competitors train.
           </h2>
           <p className="text-base text-text-2 mb-10 max-w-sm mx-auto leading-relaxed">
             Pick your competition. Map your gaps. Work through problems until the answers come from you.
